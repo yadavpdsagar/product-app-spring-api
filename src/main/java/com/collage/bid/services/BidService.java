@@ -1,5 +1,7 @@
 package com.collage.bid.services;
 
+import com.collage.bid.dto.BidDTO;
+import com.collage.bid.dto.ItemDTO;
 import com.collage.bid.model.Bid;
 import com.collage.bid.model.Item;
 import com.collage.bid.repositories.BidRepository;
@@ -10,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class BidService {
@@ -40,6 +44,52 @@ public class BidService {
 
         // Return the saved bid (now with its associated items)
         return savedBid;
+    }
+
+
+    @Transactional
+    public BidDTO getBidWithItems(Long bidId) {
+        Bid bid = bidRepository.findById(bidId)
+                .orElseThrow(() -> new NoSuchElementException("Bid not found with id " + bidId));
+
+        List<ItemDTO> itemDTOs = bid.getSubCategories().stream()
+                .map(this::convertToItemDTO)
+                .collect(Collectors.toList());
+
+        return convertToBidDTO(bid, itemDTOs);
+    }
+
+    private ItemDTO convertToItemDTO(Item item) {
+        ItemDTO itemDTO = new ItemDTO();
+        itemDTO.setName(item.getName());
+        itemDTO.setQuantity(item.getQuantity());
+        itemDTO.setSpecification(item.getSpecification());
+        itemDTO.setDeliveryTime(item.getDeliveryTime());
+        itemDTO.setPrice(item.getPrice());
+        return itemDTO;
+    }
+
+    private BidDTO convertToBidDTO(Bid bid, List<ItemDTO> itemDTOs) {
+        BidDTO bidDTO = new BidDTO();
+        bidDTO.setId(bid.getId());
+        bidDTO.setUsername(bid.getUsername());
+        bidDTO.setTitle(bid.getTitle());
+        bidDTO.setBankAccNo(bid.getBankAccNo());
+        bidDTO.setValidDate(bid.getValidDate());
+        bidDTO.setCloseDate(bid.getCloseDate());
+        bidDTO.setBankName(bid.getBankName());
+        bidDTO.setItems(itemDTOs);
+        return bidDTO;
+    }
+
+    @Transactional
+    public List<BidDTO> getAllBids() {
+        List<Bid> bids = bidRepository.findAll();  // Get all bids
+        return bids.stream()
+                .map(bid -> convertToBidDTO(bid, bid.getSubCategories().stream()
+                        .map(this::convertToItemDTO)
+                        .collect(Collectors.toList())))
+                .collect(Collectors.toList());
     }
 
 

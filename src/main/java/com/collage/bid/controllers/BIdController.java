@@ -1,5 +1,6 @@
 package com.collage.bid.controllers;
 
+import com.collage.bid.dto.BidDTO;
 import com.collage.bid.dto.CreateBidRequest;
 import com.collage.bid.model.Item;
 import com.collage.bid.services.BidService;
@@ -35,15 +36,29 @@ public class BIdController {
         return new ResponseEntity<>(savedBid, HttpStatus.CREATED);
     }
 
+    // Get All Bids
     @GetMapping("/categories")
-    public List<Bid> getCategories(){
-        return bidService.getAllCategories();
+    public ResponseEntity<List<BidDTO>> getAllBids() {
+        List<BidDTO> bidDTOs = bidService.getAllBids();  // Assuming the service method fetches all bids and converts them to DTOs
+        return new ResponseEntity<>(bidDTOs, HttpStatus.OK);
     }
 
+    // Get Bid by ID
     @GetMapping("/category/{id}")
-    public Bid getCategory(@PathVariable("id") Long id){
-        return bidService.getCategoryById(id);
+    public ResponseEntity<BidDTO> getBidById(@PathVariable Long id) {
+        BidDTO bidDTO = bidService.getBidWithItems(id);  // Fetches the bid by id and converts it to DTO
+        return new ResponseEntity<>(bidDTO, HttpStatus.OK);
     }
+
+//    @GetMapping("/categories")
+//    public List<Bid> getCategories(){
+//        return bidService.getAllCategories();
+//    }
+
+//    @GetMapping("/category/{id}")
+//    public Bid getCategory(@PathVariable("id") Long id){
+//        return bidService.getCategoryById(id);
+//    }
 
     @GetMapping("/category/ByUsername")
     public List<Bid> getCategoryByUsername(){

@@ -27,3 +27,4 @@ public class CreateBidRequest {
         this.items = items;
     }
 }
+
